@@ -1,0 +1,3 @@
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd-voltmind-002: error: *** JOB 1281 ON voltmind-002 CANCELLED AT 2026-03-21T10:43:43 ***
+slurmstepd-voltmind-002: error: *** STEP 1281.0 ON voltmind-002 CANCELLED AT 2026-03-21T10:43:43 ***

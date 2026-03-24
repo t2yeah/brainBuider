@@ -1,0 +1,24 @@
+INFO:     Started server process [2867855]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)
+/home/team-009/project/venv/lib/python3.12/site-packages/fastapi/openapi/utils.py:255: UserWarning: Duplicate Operation ID get_result_media_media_result__audio_id___filename__head for function get_result_media at /home/team-009/project/app/main.py
+  warnings.warn(message, stacklevel=1)
+/home/team-009/project/venv/lib/python3.12/site-packages/fastapi/openapi/utils.py:255: UserWarning: Duplicate Operation ID get_uploaded_audio_media_upload__audio_id__head for function get_uploaded_audio at /home/team-009/project/app/main.py
+  warnings.warn(message, stacklevel=1)
+Checkpoint path: /home/team-009/panns_data/Cnn14_mAP=0.431.pth
+Using CPU.
+INFO:     127.0.0.1:60780 - "GET /openapi.json HTTP/1.1" 200 OK
+[INFO] ===== NGROK BLOCK START =====
+[INFO] NGROK_BIN=/home/team-009/project/site/ngrok
+[INFO] PORT=8010
+[INFO] NGROK_LOG=/home/team-009/project/site/logs/ngrok.log
+[INFO] NGROK_PID_FILE=/home/team-009/project/site/runtime/ngrok.pid
+[INFO] NGROK_URL_FILE=/home/team-009/project/site/runtime/ngrok_public_url.txt
+[INFO] configuring ngrok authtoken...
+[INFO] launching ngrok...
+[INFO] ngrok PID=2868169
+[INFO] Waiting for ngrok API...
+[INFO] Public URL: https://uncastled-multisonic-ingeborg.ngrok-free.dev
+[INFO] ===== NGROK BLOCK END =====
+INFO:     133.106.49.157:0 - "GET / HTTP/1.1" 200 OK

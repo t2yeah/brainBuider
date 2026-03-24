@@ -1,0 +1,28 @@
+======================================
+ Slurm batch job for FastAPI + ngrok
+======================================
+[INFO] JOB_ID=1282
+[INFO] HOSTNAME=voltmind-002
+[INFO] IMAGE=/home/team-009/nvidia+pytorch+25.11-py3.sqsh
+[INFO] START=2026-03-21 10:46:36
+======================================
+ Starting FastAPI + ngrok in container
+======================================
+[INFO] PROJECT_DIR=/home/team-009/project
+[INFO] SITE_DIR=/home/team-009/project/site
+[INFO] PYTHON_BIN=/home/team-009/project/venv/bin/python
+[INFO] NGROK_BIN=/home/team-009/project/site/ngrok
+[INFO] Stopping old processes if any...
+[INFO] Waiting for ports to be released...
+[INFO] Starting FastAPI...
+[INFO] FastAPI PID=2603872
+[INFO] Waiting for FastAPI health check...
+[INFO] FastAPI started.
+[INFO] Starting ngrok...
+[INFO] configuring ngrok authtoken...
+[INFO] ngrok PID=2604181
+[INFO] Waiting for ngrok API...
+[INFO] Public URL: https://uncastled-multisonic-ingeborg.ngrok-free.dev
+[INFO] Public URL saved: /home/team-009/project/site/runtime/ngrok_public_url.txt
+[INFO] FastAPI log: /home/team-009/project/site/logs/fastapi.log
+[INFO] ngrok log: /home/team-009/project/site/logs/ngrok.log

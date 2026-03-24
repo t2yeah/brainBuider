@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sound Space Analyzer</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#141c32;
+      --panel2:#1b2643;
+      --line:#2b3a62;
+      --text:#f5f7ff;
+      --sub:#b9c5e3;
+      --accent:#8fc5ff;
+      --ok:#78f5a1;
+      --warn:#ffd166;
+      --ng:#ff8f8f;
+      --btn:#315ea8;
+      --btn2:#33415f;
+      --shadow:0 10px 28px rgba(0,0,0,.28);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#09101f 0%, #0b1020 100%);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      padding:20px;
+    }
+    .container{max-width:1280px;margin:0 auto}
+    .card{
+      background:var(--panel);
+      border:1px solid rgba(255,255,255,.04);
+      border-radius:var(--radius);
+      padding:18px;
+      margin-bottom:18px;
+      box-shadow:var(--shadow);
+    }
+    .hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap}
+    h1{margin:0 0 8px;font-size:30px;line-height:1.2}
+    h2{margin:0 0 14px;font-size:20px}
+    h3{margin:0 0 10px;font-size:16px}
+    .sub{color:var(--sub);font-size:14px;line-height:1.7}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .toolbar.column{align-items:flex-start;flex-direction:column}
+    .toolbar input[type="text"], .toolbar input[type="file"]{
+      padding:12px 14px;font-size:15px;border:none;border-radius:12px;background:#0f1730;color:var(--text);outline:none
+    }
+    input[type="text"]{width:340px;max-width:100%}
+    input[type="file"]{width:100%}
+    button{
+      padding:12px 16px;border:none;border-radius:12px;background:var(--btn);color:#fff;font-weight:700;cursor:pointer
+    }
+    button.secondary{background:var(--btn2)}
+    button.active{outline:2px solid rgba(143,197,255,.6)}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .summary-box{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .mini{
+      background:var(--panel2);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.03)
+    }
+    .mini .label{font-size:12px;color:var(--sub);margin-bottom:6px}
+    .mini .value{font-size:15px;font-weight:700;line-height:1.5;word-break:break-word}
+    .kv{display:grid;grid-template-columns:170px 1fr;gap:8px 12px;align-items:start;margin-bottom:10px}
+    .k{color:var(--sub);font-size:13px}
+    .v{font-size:14px;line-height:1.7;word-break:break-word}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#2e3b5f;font-size:13px;margin:4px 6px 0 0}
+    .mono{
+      white-space:pre-wrap;
+      word-break:break-word;
+      overflow:auto;
+      background:#0d1428;
+      padding:12px;
+      border-radius:12px;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      font-size:12px;
+      line-height:1.6;
+      color:#dfe7ff
+    }
+    .step{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      background:var(--panel2);
+      padding:12px;
+      border-radius:12px;
+      margin-bottom:8px
+    }
+    .step-title{font-weight:700;font-size:14px}
+    .step-meta{font-size:12px;color:var(--sub);margin-top:4px;word-break:break-word}
+    .badge{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:700}
+    .badge.running{background:rgba(255,209,102,.15);color:var(--warn)}
+    .badge.done,.badge.completed,.badge.success{background:rgba(120,245,161,.14);color:var(--ok)}
+    .badge.failed,.badge.error{background:rgba(255,143,143,.14);color:var(--ng)}
+    .badge.unknown{background:rgba(185,197,227,.12);color:var(--sub)}
+    .media-card{background:var(--panel2);padding:12px;border-radius:14px}
+    .media-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .img-stage{
+      background:#0a1020;
+      border-radius:12px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.05);
+      min-height:280px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .img-stage img{
+      width:100%;
+      max-height:880px;
+      object-fit:contain;
+      display:block;
+      background:#0b1020;
+    }
+    .compare-wrap{
+      display:none;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      width:100%;
+    }
+    .compare-item{
+      background:#0b1020;
+      border-radius:12px;
+      padding:8px;
+    }
+    .compare-item img{
+      width:100%;
+      max-height:820px;
+      object-fit:contain;
+      border-radius:10px;
+      display:block;
+      background:#0b1020;
+    }
+    .compare-label{
+      margin-top:8px;
+      font-size:12px;
+      color:var(--sub);
+      text-align:center;
+    }
+    .media-caption{
+      margin-top:8px;
+      color:var(--sub);
+      font-size:12px;
+      word-break:break-all
+    }
+    audio{width:100%;margin-top:12px}
+    .list{margin:0;padding-left:18px;font-size:14px;line-height:1.7}
+    .hidden{display:none!important}
+    .status-line{font-size:14px;font-weight:700}
+    .footer-note{font-size:12px;color:var(--sub)}
+    details{
+      background:var(--panel2);
+      border-radius:12px;
+      padding:12px;
+    }
+    details summary{
+      cursor:pointer;
+      font-weight:700;
+      color:var(--text);
+      outline:none;
+    }
+    .notice{
+      background:rgba(255,209,102,.08);
+      border:1px solid rgba(255,209,102,.18);
+      color:#ffe7a5;
+      padding:12px;
+      border-radius:12px;
+      font-size:13px;
+      line-height:1.6;
+      margin-bottom:12px;
+    }
+    .section-gap{margin-top:16px}
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      .summary-box{grid-template-columns:1fr 1fr}
+      .kv{grid-template-columns:1fr}
+      input[type="text"]{width:100%}
+      .compare-wrap{grid-template-columns:1fr}
+    }
+    @media (max-width: 640px){
+      .summary-box{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card hero">
+      <div>
+        <h1>Sound Space Analyzer</h1>
+        <div class="sub">
+          音声アップロードから、解析結果・空間判定・情景解釈・オノマトペ・漫画案・画像生成までを、1画面で確認できます。<br>
+          画像は <b>最終版（manga_text）を優先表示</b> し、元画像との比較もできます。
+        </div>
+      </div>
+      <div class="footer-note">API: <span id="apiBaseView" style="color:var(--accent)"></span></div>
+    </div>
+
+    <div class="card">
+      <h2>アップロード</h2>
+      <div class="toolbar column" style="margin-bottom:12px;">
+        <input id="audioFile" type="file" accept=".wav,.mp3,.m4a,.ogg,.flac">
+        <div class="toolbar">
+          <button id="uploadBtn" onclick="uploadAudio()">音声をアップロード</button>
+          <button id="autoRefreshBtn" class="secondary" onclick="toggleAutoRefresh()">自動更新 OFF</button>
+          <button class="secondary" onclick="clearView()">クリア</button>
+        </div>
+      </div>
+      <div id="uploadMessage" class="sub">-</div>
+    </div>
+
+    <div class="card">
+      <h2>audio_id で確認</h2>
+      <div class="toolbar">
+        <input id="audioId" type="text" placeholder="audio_id を入力（例: 938691abb377）">
+        <button onclick="loadAll()">結果を取得</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ひと目でわかる要約</h2>
+      <div class="summary-box">
+        <div class="mini">
+          <div class="label">pipeline</div>
+          <div class="value" id="summaryPipeline">-</div>
+        </div>
+        <div class="mini">
+          <div class="label">空間ラベル</div>
+          <div class="value" id="summarySpace">-</div>
+        </div>
+        <div class="mini">
+          <div class="label">表示中の画像</div>
+          <div class="value" id="summaryImageType">-</div>
+        </div>
+        <div class="mini">
+          <div class="label">漫画タイトル</div>
+          <div class="value" id="summaryManga">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>処理ステータス</h2>
+          <div class="kv"><div class="k">pipeline status</div><div class="v status-line" id="pipelineStatus">-</div></div>
+          <div class="kv"><div class="k">current step</div><div class="v" id="currentStep">-</div></div>
+          <div class="kv"><div class="k">started_at</div><div class="v" id="startedAt">-</div></div>
+          <div class="kv"><div class="k">finished_at</div><div class="v" id="finishedAt">-</div></div>
+          <div class="kv"><div class="k">error</div><div class="v" id="pipelineError">-</div></div>
+          <div id="stepList"></div>
+        </div>
+
+        <div class="card">
+          <h2>空間判定</h2>
+          <div class="kv"><div class="k">audio_id</div><div class="v" id="audioIdView">-</div></div>
+          <div class="kv"><div class="k">最終ラベル</div><div class="v" id="finalSpaceLabel">-</div></div>
+          <div class="kv"><div class="k">confidence</div><div class="v" id="confidenceView">-</div></div>
+          <div class="kv"><div class="k">理由</div><div class="v" id="reasonView">-</div></div>
+          <div class="kv"><div class="k">timeline</div><div class="v" id="timelineSummaryView">-</div></div>
+        </div>
+
+        <div class="card">
+          <h2>情景解釈</h2>
+          <div class="kv"><div class="k">タイトル</div><div class="v" id="sceneTitle">-</div></div>
+          <div class="kv"><div class="k">要約</div><div class="v" id="sceneSummary">-</div></div>
+          <div class="kv"><div class="k">mood tags</div><div class="v" id="moodTags">-</div></div>
+          <div class="kv"><div class="k">environment tags</div><div class="v" id="environmentTags">-</div></div>
+          <div class="kv"><div class="k">visual hints</div><div class="v" id="visualHints">-</div></div>
+        </div>
+
+        <div class="card">
+          <h2>オノマトペ</h2>
+          <div class="kv"><div class="k">主オノマトペ</div><div class="v" id="primaryOnomatopoeia">-</div></div>
+          <div class="kv"><div class="k">候補</div><div class="v" id="secondaryCandidates">-</div></div>
+          <div class="kv"><div class="k">強度</div><div class="v" id="intensityView">-</div></div>
+          <div class="kv"><div class="k">style</div><div class="v" id="styleHintView">-</div></div>
+          <div class="kv"><div class="k">placement</div><div class="v" id="placementHintView">-</div></div>
+          <div class="kv"><div class="k">summary</div><div class="v" id="onomatopoeiaSummary">-</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>生成画像と対応音声</h2>
+
+          <div id="mediaNotice" class="notice hidden"></div>
+
+          <div class="media-toolbar">
+            <button id="btnShowText" class="active" onclick="switchImageMode('text')">最終版テキスト画像</button>
+            <button id="btnShowBase" class="secondary" onclick="switchImageMode('base')">元の漫画画像</button>
+            <button id="btnShowCompare" class="secondary" onclick="switchImageMode('compare')">2枚比較</button>
+          </div>
+
+          <div class="media-card">
+            <div id="singleImageStage" class="img-stage">
+              <img id="mainImage" alt="生成画像" class="hidden">
+              <div id="imageEmpty" class="sub">画像や音声はまだ見つかっていません。</div>
+            </div>
+
+            <div id="compareWrap" class="compare-wrap">
+              <div class="compare-item">
+                <img id="compareBaseImage" alt="元の漫画画像">
+                <div class="compare-label">09_manga_image</div>
+              </div>
+              <div class="compare-item">
+                <img id="compareTextImage" alt="最終版テキスト画像">
+                <div class="compare-label">10_manga_text</div>
+              </div>
+            </div>
+
+            <div id="imageCaption" class="media-caption">-</div>
+
+            <div class="section-gap">
+              <div class="sub">対応音声</div>
+              <audio id="resultAudio" controls preload="metadata" class="hidden"></audio>
+              <div id="audioEmpty" class="sub">対応音声はまだ見つかっていません。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>漫画案</h2>
+          <div class="kv"><div class="k">タイトル</div><div class="v" id="mangaTitle">-</div></div>
+          <div class="kv"><div class="k">コマ数</div><div class="v" id="panelCount">-</div></div>
+          <div id="panelPlan"></div>
+          <div class="kv"><div class="k">direction notes</div><div class="v" id="directionNotes">-</div></div>
+        </div>
+
+        <div class="card">
+          <h2>Prompt</h2>
+          <div class="sub" style="margin-bottom:8px;">positive</div>
+          <div id="positivePrompt" class="mono">-</div>
+          <div class="sub" style="margin:12px 0 8px;">negative</div>
+          <div id="negativePrompt" class="mono">-</div>
+        </div>
+
+        <div class="card">
+          <h2>Raw JSON</h2>
+          <details>
+            <summary>JSON を表示する</summary>
+            <div id="rawJson" class="mono" style="margin-top:12px;">-</div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    const AUDIO_ID_RE = /^[A-Za-z0-9_-]{6,64}$/;
+
+    let autoRefresh = false;
+    let autoRefreshTimer = null;
+    let lastLoadedAudioId = "";
+    let currentMediaState = {
+      textImage: null,
+      baseImage: null,
+      audio: null,
+      mode: "text"
+    };
+
+    document.getElementById("apiBaseView").textContent = API_BASE;
+
+    function escapeHtml(str){
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function setText(id, value){
+      const el = document.getElementById(id);
+      if(el) el.textContent = value ?? "-";
+    }
+
+    function normalizeArray(v){
+      if(Array.isArray(v)) return v.filter(Boolean);
+      if(v == null || v === "") return [];
+      return [v];
+    }
+
+    function joinReadable(v){
+      const arr = normalizeArray(v);
+      return arr.length ? arr.join(" / ") : "-";
+    }
+
+    function renderTags(id, items){
+      const el = document.getElementById(id);
+      if(!el) return;
+      const arr = normalizeArray(items);
+      if(!arr.length){
+        el.textContent = "-";
+        return;
+      }
+      el.innerHTML = arr.map(x => `<span class="tag">${escapeHtml(x)}</span>`).join("");
+    }
+
+    function renderListText(id, items){
+      const el = document.getElementById(id);
+      if(!el) return;
+      const arr = normalizeArray(items);
+      if(!arr.length){
+        el.textContent = "-";
+        return;
+      }
+      el.innerHTML = `<ul class="list">${arr.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`;
+    }
+
+    function statusBadgeClass(state){
+      const s = String(state || "").toLowerCase();
+      if(["done","completed","success"].includes(s)) return "done";
+      if(["running","processing"].includes(s)) return "running";
+      if(["failed","error"].includes(s)) return "failed";
+      return "unknown";
+    }
+
+    function isUsableStatus(status){
+      const s = String(status || "").toLowerCase();
+      return ["completed","success","running","failed","error"].includes(s);
+    }
+
+    function validAudioId(audioId){
+      return AUDIO_ID_RE.test(audioId || "");
+    }
+
+    async function fetchJson(url){
+      const res = await fetch(`${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`, {
+        method: "GET",
+        cache: "no-store",
+        headers: { "Accept": "application/json" }
+      });
+
+      if(!res.ok){
+        const text = await res.text();
+        throw new Error(`API error ${res.status}: ${text}`);
+      }
+      return await res.json();
+    }
+
+    async function headExists(url){
+      try{
+        const res = await fetch(`${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`, {
+          method: "HEAD",
+          cache: "no-store"
+        });
+        return res.ok;
+      }catch{
+        return false;
+      }
+    }
+
+    function pick(obj, paths){
+      for(const path of paths){
+        let cur = obj;
+        let ok = true;
+        for(const key of path){
+          if(cur && Object.prototype.hasOwnProperty.call(cur, key)){
+            cur = cur[key];
+          }else{
+            ok = false;
+            break;
+          }
+        }
+        if(ok && cur != null) return cur;
+      }
+      return null;
+    }
+
+    function getBaseImageCandidates(audioId, resultJson = {}){
+      const fromJson = [
+        resultJson?.generated_image?.filename,
+        resultJson?.image?.filename,
+        resultJson?.image_filename,
+        resultJson?.manga_image?.filename,
+        "09_manga_image.png",
+        "09_manga_image.jpg",
+        "09_manga_image.jpeg",
+        `${audioId}.png`
+      ].filter(Boolean);
+
+      const names = [...new Set(fromJson)];
+      return names.map(name => `/media/result/${encodeURIComponent(audioId)}/${encodeURIComponent(name)}`);
+    }
+
+    function getTextImageCandidates(audioId, resultJson = {}){
+      const fromJson = [
+        resultJson?.manga_text?.filename,
+        resultJson?.manga_text_image?.filename,
+        resultJson?.final_image?.filename,
+        resultJson?.text_image?.filename,
+        "10_manga_text.png",
+        "10_manga_text.jpg",
+        "10_manga_text.jpeg"
+      ].filter(Boolean);
+
+      const names = [...new Set(fromJson)];
+      return names.map(name => `/media/result/${encodeURIComponent(audioId)}/${encodeURIComponent(name)}`);
+    }
+
+    function getAudioCandidates(audioId){
+      return [`/media/upload/${encodeURIComponent(audioId)}`];
+    }
+
+    async function firstExisting(urls){
+      for(const url of urls){
+        if(await headExists(url)){
+          return url;
+        }
+      }
+      return null;
+    }
+
+    async function loadStatus(audioId){
+      return await fetchJson(`${API_BASE}/analysis/${encodeURIComponent(audioId)}/status`);
+    }
+
+    async function loadResult(audioId){
+      return await fetchJson(`${API_BASE}/analysis/${encodeURIComponent(audioId)}`);
+    }
+
+    async function uploadAudio(){
+      const fileInput = document.getElementById("audioFile");
+      const file = fileInput.files[0];
+      const uploadBtn = document.getElementById("uploadBtn");
+      const uploadMessage = document.getElementById("uploadMessage");
+
+      if(!file){
+        alert("音声ファイルを選択してください。");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      uploadBtn.disabled = true;
+      uploadMessage.innerHTML = '<span style="color:var(--warn)">アップロード中...</span>';
+
+      try{
+        const res = await fetch(`${API_BASE}/api/upload-audio?t=${Date.now()}`, {
+          method: "POST",
+          body: formData,
+          cache: "no-store"
+        });
+
+        if(!res.ok){
+          const text = await res.text();
+          throw new Error(`upload error ${res.status}: ${text}`);
+        }
+
+        const data = await res.json();
+        const audioId = data.audio_id || "";
+        document.getElementById("audioId").value = audioId;
+        lastLoadedAudioId = audioId;
+
+        uploadMessage.innerHTML = [
+          '<span style="color:var(--ok)">アップロード成功</span>',
+          `audio_id: ${escapeHtml(audioId)}`,
+          `status: ${escapeHtml(data.status || "-")}`
+        ].join("<br>");
+
+        await loadAll();
+      }catch(e){
+        console.error(e);
+        uploadMessage.innerHTML = `<span style="color:var(--ng)">アップロード失敗: ${escapeHtml(e.message)}</span>`;
+      }finally{
+        uploadBtn.disabled = false;
+      }
+    }
+
+    function renderPipelineStatus(data){
+      const pipelineStatus = data?.status || "-";
+      const currentStep = data?.current_step || "-";
+      setText("pipelineStatus", pipelineStatus);
+      setText("currentStep", currentStep);
+      setText("startedAt", data?.started_at || "-");
+      setText("finishedAt", data?.finished_at || "-");
+
+      const error = data?.error ? `${data.error.type || ""}: ${data.error.message || ""}`.trim() : "-";
+      setText("pipelineError", error || "-");
+      setText("summaryPipeline", pipelineStatus);
+
+      const stepList = document.getElementById("stepList");
+      stepList.innerHTML = "";
+      const steps = Array.isArray(data?.steps) ? data.steps : [];
+
+      if(!steps.length){
+        stepList.textContent = "ステップ情報はまだありません。";
+        return;
+      }
+
+      for(const step of steps){
+        const row = document.createElement("div");
+        row.className = "step";
+
+        const left = document.createElement("div");
+        left.style.flex = "1";
+
+        const title = document.createElement("div");
+        title.className = "step-title";
+        title.textContent = `${step.step_no ?? "-"}. ${step.step_name || "-"}`;
+
+        const meta = document.createElement("div");
+        meta.className = "step-meta";
+        meta.textContent = [step.message, step.output_file].filter(Boolean).join(" / ") || "-";
+
+        left.appendChild(title);
+        left.appendChild(meta);
+
+        const badge = document.createElement("span");
+        const state = step.state || "unknown";
+        badge.className = `badge ${statusBadgeClass(state)}`;
+        badge.textContent = state;
+
+        row.appendChild(left);
+        row.appendChild(badge);
+        stepList.appendChild(row);
+      }
+    }
+
+    function renderFinalResult(data){
+      setText("audioIdView", data?.audio_id || lastLoadedAudioId || "-");
+
+      const finalSpaceLabel = pick(data, [
+        ["space_analysis", "final_space_label"],
+        ["space_judgement", "final_space_label"],
+        ["space_analysis", "label"]
+      ]) || "-";
+      setText("finalSpaceLabel", finalSpaceLabel);
+      setText("summarySpace", finalSpaceLabel);
+
+      setText("confidenceView", pick(data, [["space_analysis", "confidence"], ["space_judgement", "confidence"]]) ?? "-");
+      setText("reasonView", joinReadable(pick(data, [["space_analysis", "reason"], ["space_judgement", "reason"]])) || "-");
+      setText("timelineSummaryView", joinReadable(pick(data, [["space_analysis", "timeline_summary"], ["space_judgement", "timeline_summary"]])) || "-");
+
+      const sceneTitle = pick(data, [["scene_interpretation", "scene_title"], ["scene", "scene_title"]]) || "-";
+      const sceneSummary = pick(data, [["scene_interpretation", "scene_summary"], ["scene", "scene_summary"]]) || "-";
+
+      setText("sceneTitle", sceneTitle);
+      setText("sceneSummary", sceneSummary);
+      renderTags("moodTags", pick(data, [["scene_interpretation", "mood_tags"]]));
+      renderTags("environmentTags", pick(data, [["scene_interpretation", "environment_tags"]]));
+      setText("visualHints", joinReadable(pick(data, [["scene_interpretation", "visual_hints"]])));
+
+      setText("primaryOnomatopoeia", pick(data, [["onomatopoeia", "primary_onomatopoeia"]]) || "-");
+      setText("secondaryCandidates", joinReadable(pick(data, [["onomatopoeia", "secondary_candidates"]])) || "-");
+      setText("intensityView", pick(data, [["onomatopoeia", "intensity"]]) ?? "-");
+      setText("styleHintView", pick(data, [["onomatopoeia", "style_hint"]]) || "-");
+      setText("placementHintView", pick(data, [["onomatopoeia", "placement_hint"]]) || "-");
+      setText("onomatopoeiaSummary", pick(data, [["onomatopoeia", "summary"]]) || "-");
+
+      const rawMangaTitle = pick(data, [["manga_prompt", "manga_title"], ["manga", "manga_title"]]);
+      const mangaTitle = rawMangaTitle || sceneTitle || "タイトル未設定";
+      setText("mangaTitle", mangaTitle);
+      setText("summaryManga", mangaTitle);
+
+      const panelCount = pick(data, [["manga_prompt", "panel_count"]]);
+      setText("panelCount", panelCount ?? "-");
+
+      const panelPlanEl = document.getElementById("panelPlan");
+      panelPlanEl.innerHTML = "";
+      const panelPlan = normalizeArray(pick(data, [["manga_prompt", "panel_plan"]]));
+      if(panelPlan.length){
+        for(const panel of panelPlan){
+          const div = document.createElement("div");
+          div.className = "media-card";
+          const purpose = panel?.purpose ? `（${escapeHtml(panel.purpose)}）` : "";
+          const onoma = panel?.onomatopoeia ? `<br><span style="color:var(--accent)">オノマトペ: ${escapeHtml(panel.onomatopoeia)}</span>` : "";
+          div.innerHTML = `<b>${escapeHtml(panel?.panel_no ?? "-")}コマ目</b>${purpose}<br>${escapeHtml(panel?.description || "-")}${onoma}`;
+          panelPlanEl.appendChild(div);
+        }
+      }else{
+        panelPlanEl.textContent = "-";
+      }
+
+      renderListText("directionNotes", pick(data, [["manga_prompt", "direction_notes"]]));
+      setText("positivePrompt", pick(data, [["manga_prompt", "positive_prompt"]]) || "-");
+      setText("negativePrompt", pick(data, [["manga_prompt", "negative_prompt"]]) || "-");
+      setText("rawJson", JSON.stringify(data, null, 2));
+
+      const notices = [];
+      if((rawMangaTitle == null || rawMangaTitle === "") && sceneTitle && sceneTitle !== "-"){
+        notices.push("manga_title が空のため、画面上は scene_title を代替表示しています。");
+      }
+      if(panelCount === 0){
+        notices.push("panel_count が 0 です。表示上は結果を出していますが、漫画案の構造は未整備の可能性があります。");
+      }
+
+      const mediaNotice = document.getElementById("mediaNotice");
+      if(notices.length){
+        mediaNotice.classList.remove("hidden");
+        mediaNotice.innerHTML = notices.map(x => `・${escapeHtml(x)}`).join("<br>");
+      }else{
+        mediaNotice.classList.add("hidden");
+        mediaNotice.innerHTML = "";
+      }
+    }
+
+    function setActiveModeButton(mode){
+      const map = {
+        text: document.getElementById("btnShowText"),
+        base: document.getElementById("btnShowBase"),
+        compare: document.getElementById("btnShowCompare")
+      };
+
+      Object.entries(map).forEach(([key, btn]) => {
+        if(!btn) return;
+        if(key === mode){
+          btn.classList.add("active");
+          btn.classList.remove("secondary");
+        }else{
+          btn.classList.remove("active");
+          btn.classList.add("secondary");
+        }
+      });
+    }
+
+    function switchImageMode(mode){
+      currentMediaState.mode = mode;
+
+      const singleStage = document.getElementById("singleImageStage");
+      const compareWrap = document.getElementById("compareWrap");
+      const mainImage = document.getElementById("mainImage");
+      const imageEmpty = document.getElementById("imageEmpty");
+      const imageCaption = document.getElementById("imageCaption");
+
+      setActiveModeButton(mode);
+
+      if(mode === "compare"){
+        singleStage.classList.add("hidden");
+        compareWrap.style.display = (currentMediaState.baseImage || currentMediaState.textImage) ? "grid" : "none";
+        imageCaption.textContent = [
+          currentMediaState.baseImage ? `base: ${currentMediaState.baseImage}` : "base: 未検出",
+          currentMediaState.textImage ? `text: ${currentMediaState.textImage}` : "text: 未検出"
+        ].join(" / ");
+        setText("summaryImageType", "2枚比較");
+        return;
+      }
+
+      singleStage.classList.remove("hidden");
+      compareWrap.style.display = "none";
+
+      let src = null;
+      let label = "-";
+
+      if(mode === "text"){
+        src = currentMediaState.textImage || currentMediaState.baseImage;
+        label = currentMediaState.textImage ? "最終版テキスト画像" : (currentMediaState.baseImage ? "元の漫画画像（代替表示）" : "-");
+      }else if(mode === "base"){
+        src = currentMediaState.baseImage || currentMediaState.textImage;
+        label = currentMediaState.baseImage ? "元の漫画画像" : (currentMediaState.textImage ? "最終版テキスト画像（代替表示）" : "-");
+      }
+
+      if(src){
+        mainImage.src = `${src}?t=${Date.now()}`;
+        mainImage.classList.remove("hidden");
+        imageEmpty.classList.add("hidden");
+        imageCaption.textContent = src;
+      }else{
+        mainImage.src = "";
+        mainImage.classList.add("hidden");
+        imageEmpty.classList.remove("hidden");
+        imageCaption.textContent = "画像未検出";
+      }
+
+      setText("summaryImageType", label);
+    }
+
+    async function renderMedia(audioId, resultJson){
+      const textImage = await firstExisting(getTextImageCandidates(audioId, resultJson));
+      const baseImage = await firstExisting(getBaseImageCandidates(audioId, resultJson));
+      const audioUrl = await firstExisting(getAudioCandidates(audioId));
+
+      currentMediaState.textImage = textImage;
+      currentMediaState.baseImage = baseImage;
+      currentMediaState.audio = audioUrl;
+
+      const compareBaseImage = document.getElementById("compareBaseImage");
+      const compareTextImage = document.getElementById("compareTextImage");
+
+      compareBaseImage.src = baseImage ? `${baseImage}?t=${Date.now()}` : "";
+      compareTextImage.src = textImage ? `${textImage}?t=${Date.now()}` : "";
+
+      const audioEl = document.getElementById("resultAudio");
+      const audioEmpty = document.getElementById("audioEmpty");
+
+      if(audioUrl){
+        audioEl.src = `${audioUrl}?t=${Date.now()}`;
+        audioEl.classList.remove("hidden");
+        audioEmpty.classList.add("hidden");
+      }else{
+        audioEl.pause();
+        audioEl.removeAttribute("src");
+        audioEl.load();
+        audioEl.classList.add("hidden");
+        audioEmpty.classList.remove("hidden");
+      }
+
+      if(textImage){
+        switchImageMode("text");
+      }else if(baseImage){
+        switchImageMode("base");
+      }else{
+        switchImageMode("text");
+      }
+    }
+
+    async function loadAll(){
+      const audioId = document.getElementById("audioId").value.trim();
+      if(!validAudioId(audioId)){
+        alert("audio_id の形式が不正です。");
+        return;
+      }
+      lastLoadedAudioId = audioId;
+
+      try{
+        const status = await loadStatus(audioId);
+        renderPipelineStatus(status);
+
+        let result = null;
+        if(isUsableStatus(status?.status)){
+          try{
+            result = await loadResult(audioId);
+            renderFinalResult(result);
+          }catch(err){
+            console.warn("result fetch skipped/failed", err);
+          }
+        }
+
+        await renderMedia(audioId, result || {});
+      }catch(e){
+        console.error(e);
+        setText("pipelineStatus", `取得失敗: ${e.message}`);
+      }
+    }
+
+    function toggleAutoRefresh(){
+      autoRefresh = !autoRefresh;
+      const btn = document.getElementById("autoRefreshBtn");
+
+      if(autoRefresh){
+        btn.textContent = "自動更新 ON";
+        autoRefreshTimer = setInterval(() => {
+          const audioId = document.getElementById("audioId").value.trim();
+          if(validAudioId(audioId)) loadAll();
+        }, 3000);
+      }else{
+        btn.textContent = "自動更新 OFF";
+        if(autoRefreshTimer){
+          clearInterval(autoRefreshTimer);
+          autoRefreshTimer = null;
+        }
+      }
+    }
+
+    function clearView(){
+      document.getElementById("audioFile").value = "";
+      document.getElementById("audioId").value = "";
+      document.getElementById("uploadMessage").textContent = "-";
+      lastLoadedAudioId = "";
+
+      [
+        "pipelineStatus","currentStep","startedAt","finishedAt","pipelineError",
+        "audioIdView","finalSpaceLabel","confidenceView","reasonView","timelineSummaryView",
+        "sceneTitle","sceneSummary","visualHints",
+        "primaryOnomatopoeia","secondaryCandidates","intensityView","styleHintView","placementHintView","onomatopoeiaSummary",
+        "mangaTitle","panelCount","positivePrompt","negativePrompt","rawJson",
+        "summaryPipeline","summarySpace","summaryManga","summaryImageType"
+      ].forEach(id => setText(id, "-"));
+
+      document.getElementById("stepList").innerHTML = "";
+      document.getElementById("panelPlan").innerHTML = "";
+      document.getElementById("moodTags").textContent = "-";
+      document.getElementById("environmentTags").textContent = "-";
+      document.getElementById("directionNotes").textContent = "-";
+
+      currentMediaState = {
+        textImage: null,
+        baseImage: null,
+        audio: null,
+        mode: "text"
+      };
+
+      const mainImage = document.getElementById("mainImage");
+      mainImage.src = "";
+      mainImage.classList.add("hidden");
+      document.getElementById("imageEmpty").classList.remove("hidden");
+      document.getElementById("imageCaption").textContent = "-";
+      document.getElementById("compareWrap").style.display = "none";
+      document.getElementById("singleImageStage").classList.remove("hidden");
+
+      const audioEl = document.getElementById("resultAudio");
+      audioEl.pause();
+      audioEl.removeAttribute("src");
+      audioEl.load();
+      audioEl.classList.add("hidden");
+      document.getElementById("audioEmpty").classList.remove("hidden");
+
+      document.getElementById("mediaNotice").classList.add("hidden");
+      document.getElementById("mediaNotice").innerHTML = "";
+
+      setActiveModeButton("text");
+    }
+
+    document.getElementById("audioId").addEventListener("keydown", (e) => {
+      if(e.key === "Enter") loadAll();
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const initialAudioId = params.get("audio_id");
+    if(validAudioId(initialAudioId)){
+      document.getElementById("audioId").value = initialAudioId;
+      loadAll();
+    }else{
+      clearView();
+    }
+  </script>
+</body>
+</html>
