@@ -1,0 +1,51 @@
+import os
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from app.core.config import ALLOWED_EXTENSIONS, MAX_FILE_SIZE, UPLOAD_DIR
+from app.schemas.upload_schema import UploadResponse
+
+router = APIRouter(prefix="/api", tags=["upload"])
+
+
+@router.post("/upload-audio", response_model=UploadResponse)
+async def upload_audio(file: UploadFile = File(...)):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="ファイル名がありません。")
+
+    ext = Path(file.filename).suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"未対応の拡張子です。対応形式: {sorted(ALLOWED_EXTENSIONS)}"
+        )
+
+    # 一旦すべて読み込んでサイズ確認
+    data = await file.read()
+    size_bytes = len(data)
+
+    if size_bytes == 0:
+        raise HTTPException(status_code=400, detail="空ファイルです。")
+
+    if size_bytes > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"ファイルサイズが大きすぎます。最大 {MAX_FILE_SIZE // (1024 * 1024)}MB です。"
+        )
+
+    audio_id = uuid.uuid4().hex[:12]
+    save_name = f"{audio_id}{ext}"
+    save_path = UPLOAD_DIR / save_name
+
+    with open(save_path, "wb") as f:
+        f.write(data)
+
+    return UploadResponse(
+        audio_id=audio_id,
+        original_filename=file.filename,
+        saved_path=str(save_path.relative_to(save_path.parents[2])),
+        content_type=file.content_type,
+        size_bytes=size_bytes,
+        status="uploaded",
+    )
