@@ -1,7 +1,12 @@
-MIT License
+## License
 
-Copyright (c) 2026 ヤドリギ
+This project is licensed under the MIT License.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction...
+Copyright (c) 2026 Yadorigi
+
+Note:
+This project uses external models and datasets.
+Please follow each license:
+
+- Swallow-8B
+- Animagine XL 4.0
