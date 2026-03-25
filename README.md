@@ -217,6 +217,7 @@ python app/services/pipeline.py --audio-id sample
 # 🧪 テスト（Tests）
 
 ```bash
+chmod +x tests/run_test.sh
 ./tests/run_test.sh
 ```
 
