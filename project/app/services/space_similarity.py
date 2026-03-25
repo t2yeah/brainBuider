@@ -26,7 +26,6 @@ except Exception:
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RESULT_ROOT = PROJECT_ROOT / "data" / "results"
-PROJECT_ROOT = Path("/home/team-009/project")
 CONFIG_ROOT = PROJECT_ROOT / "config"
 DATA_ROOT = PROJECT_ROOT / "data"
 TMP_ROOT = PROJECT_ROOT / "tmp"
@@ -769,37 +768,17 @@ def resolve_audio_path(audio_id: str) -> Path:
         DATA_ROOT / "audios",
         DATA_ROOT / "input",
         TMP_ROOT,
-        PROJECT_ROOT,
     ]
     candidate_exts = [".wav", ".mp3", ".m4a", ".flac", ".ogg"]
-
-    candidates: List[Path] = []
 
     for base_dir in candidate_dirs:
         if not base_dir.exists():
             continue
 
         for ext in candidate_exts:
-            candidates.append(base_dir / f"{audio_id}{ext}")
-
-        try:
-            for p in base_dir.rglob(f"{audio_id}*"):
-                if p.is_file():
-                    candidates.append(p)
-        except Exception:
-            pass
-
-    seen = set()
-    uniq = []
-    for p in candidates:
-        sp = str(p)
-        if sp not in seen:
-            uniq.append(p)
-            seen.add(sp)
-
-    for p in uniq:
-        if p.exists() and p.is_file():
-            return p
+            p = base_dir / f"{audio_id}{ext}"
+            if p.exists() and p.is_file():
+                return p
 
     raise FileNotFoundError(
         f"audio_id={audio_id} に対応する音声ファイルが見つかりません。"
