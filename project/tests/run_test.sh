@@ -9,7 +9,8 @@ cd "${PROJECT_ROOT}"
 echo "[test] project root: ${PROJECT_ROOT}"
 
 # ===== 設定 =====
-AUDIO_ID="${1:-test_sample}"
+AUDIO_ID=$(openssl rand -hex 6)
+echo "[test] generated audio_id: ${AUDIO_ID}"
 TEST_AUDIO="${PROJECT_ROOT}/tests/sample_audio.wav"
 UPLOAD_DIR="${PROJECT_ROOT}/data/uploads"
 RESULT_DIR="${PROJECT_ROOT}/data/results/${AUDIO_ID}"
