@@ -140,7 +140,8 @@ pip install -r requirements.txt
 ### LLM
 
 ```bash
-huggingface-cli login
+pip install -U "huggingface_hub[cli]"
+hf auth login
 ```
 
 ---
@@ -221,6 +222,23 @@ python app/services/pipeline.py --audio-id sample
 
 👉 sample_audio.wav で再現可能
 
+
+---
+
+# 注意点
+
+1つだけ重要です。  
+`final_result.py` は `10_final_result.json` に保存する実装ですが、`pipeline.py` の定義上は `11_final_result.json` を期待しているように見えます。ここは**不整合がある可能性**があります。`final_result.py` では `output_path = result_dir / "10_final_result.json"` です。:contentReference[oaicite:1]{index=1}  
+一方で `pipeline.py` の step 13 は `"11_final_result.json"` を出力ファイル名として持っています。:contentReference[oaicite:2]{index=2}
+
+つまり、READMEやテストではどちらかに統一した方がよいです。  
+実運用上は **`10_final_result.json` か `11_final_result.json` のどちらかに揃える修正** を先に入れるのが望ましいです。
+
+---
+
+# 次にやるべきこと
+
+次は `tests/expected_output.json` も作って、**最低限の内容チェック**まで入れるのがよいです。
 ---
 
 # 🤖 モデル詳細（Model Details）
