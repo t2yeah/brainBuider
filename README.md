@@ -140,7 +140,8 @@ pip install -r requirements.txt
 ### LLM
 
 ```bash
-huggingface-cli login
+pip install -U "huggingface_hub[cli]"
+hf auth login
 ```
 
 ---
