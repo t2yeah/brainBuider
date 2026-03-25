@@ -1,6 +1,3 @@
-
-1. 先頭のパス設定を相対化
-今のコード
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
