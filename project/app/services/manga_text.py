@@ -1,8 +1,13 @@
 import argparse
 import os
 import json
+from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+RESULTS_DIR = PROJECT_ROOT / "data" / "results"
+FONT_PATH = PROJECT_ROOT / "fonts" / "NotoSansJP-Bold.ttf"
 
 def add_onomatopoeia_with_shadow(
     input_path: str,
@@ -90,7 +95,7 @@ def resolve_rotate_deg(scene_match: str, style_hint: str):
     return -5
 
 def run(audio_id: str):
-    base_dir = f"/home/team-009/project/data/results/{audio_id}"
+    base_dir = PROJECT_ROOT / "data" / "results" / audio_id
 
     input_path = os.path.join(base_dir, "09_manga_image.png")
     output_path = os.path.join(base_dir, "10_manga_text.png")
@@ -115,7 +120,7 @@ def run(audio_id: str):
     font_size = resolve_font_size(intensity, style_hint)
     rotate_deg = resolve_rotate_deg(scene_match, style_hint)
 
-    font_path = "/home/team-009/project/fonts/NotoSansJP-Bold.ttf"
+    font_path = PROJECT_ROOT / "fonts" / "NotoSansJP-Bold.ttf"
 
     add_onomatopoeia_with_shadow(
         input_path=input_path,
