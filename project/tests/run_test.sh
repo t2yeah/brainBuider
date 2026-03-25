@@ -44,6 +44,23 @@ echo "[test] python: ${PYTHON_BIN}"
 cp "${TEST_AUDIO}" "${UPLOAD_DIR}/${AUDIO_ID}.wav"
 echo "[test] copied audio -> ${UPLOAD_DIR}/${AUDIO_ID}.wav"
 
+# ===== 前処理（segments 作成） =====
+echo "[test] run preprocess: ${AUDIO_ID}"
+"${PYTHON_BIN}" -c "
+from app.services.audio_preprocess import run
+run('${AUDIO_ID}')
+"
+
+# ===== 前処理結果確認 =====
+SEGMENT_DIR="${PROJECT_ROOT}/data/segments/${AUDIO_ID}"
+if [ ! -d "${SEGMENT_DIR}" ]; then
+  echo "[ERROR] segment dir not found: ${SEGMENT_DIR}"
+  exit 1
+fi
+
+echo "[test] segment dir exists: ${SEGMENT_DIR}"
+ls -l "${SEGMENT_DIR}"
+
 # ===== パイプライン実行 =====
 echo "[test] run pipeline: ${AUDIO_ID}"
 "${PYTHON_BIN}" -c "
