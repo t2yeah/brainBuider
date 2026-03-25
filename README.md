@@ -112,7 +112,7 @@ project/
 
 ```bash
 git clone https://github.com/t2yeah/brainBuider/
-cd project
+cd brainBuider/project
 ```
 
 ---
