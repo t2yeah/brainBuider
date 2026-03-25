@@ -166,6 +166,26 @@ StableDiffusionXLPipeline.from_pretrained("cagliostrolab/animagine-xl-4.0")
 
 ---
 
+## 🌐 ngrok の配置
+
+本プロジェクトでは、ローカルの FastAPI / Web サイトを外部公開するために `ngrok` を使用します。  
+`ngrok` バイナリは `site/` 直下に配置してください。
+
+### 配置例
+
+```text
+project/
+└── site/
+    ├── start_web.sh
+    ├── stop_web.sh
+    ├── status_web.sh
+    ├── ngrok
+    ├── index.html
+    ├── app.js
+    ├── assets/
+    ├── logs/
+    └── runtime/
+
 ## ▶ 実行方法（Usage）
 
 ### CLI
