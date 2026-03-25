@@ -5,7 +5,7 @@ PROJECT_DIR="/home/team-009/project"
 SITE_DIR="${PROJECT_DIR}/site"
 RUNTIME_DIR="${SITE_DIR}/runtime"
 SLURM_SCRIPT="${SITE_DIR}/run_web.slurm"
-export NGROK_AUTHTOKEN=""
+export NGROK_AUTHTOKEN="your_key"
 
 mkdir -p "${RUNTIME_DIR}"
 
