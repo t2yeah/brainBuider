@@ -111,7 +111,7 @@ project/
 ## ① Clone
 
 ```bash
-git clone https://github.com/your-repo
+git clone https://github.com/t2yeah/brainBuider/blob
 cd project
 ```
 
