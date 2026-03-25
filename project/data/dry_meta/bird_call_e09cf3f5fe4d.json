@@ -1,0 +1,18 @@
+{
+  "run_id": "e09cf3f5fe4d",
+  "content_label": "bird_call",
+  "prompt": "bird chirping single note, isolated sound, no reverb",
+  "negative_prompt": "music, singing, melody, instruments, echo, reverb, reverberant, ambience, room tone, background noise, crowd, distorted, low quality",
+  "seed": 201,
+  "seconds": 6.0,
+  "num_inference_steps": 60,
+  "model_id": "stabilityai/stable-audio-open-1.0",
+  "sample_rate": 44100,
+  "device": "cuda",
+  "torch_dtype": "torch.float16",
+  "output_wav": "data/dry/bird_call_e09cf3f5fe4d.wav",
+  "qa_status": "pending",
+  "qa_note": "",
+  "notes": "dry素材。空間化（RIR畳み込み）は後段で実施予定。",
+  "created_at_unix": 1772769224
+}
