@@ -29,7 +29,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-PROJECT_ROOT = Path("/home/team-009/project")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RESULTS_DIR = PROJECT_ROOT / "data" / "results"
 
 DEFAULT_LLM_MODEL = "tokyotech-llm/Llama-3.1-Swallow-8B-Instruct-v0.3"

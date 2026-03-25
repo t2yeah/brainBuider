@@ -41,7 +41,7 @@ except ImportError:
     psutil = None
 
 
-PROJECT_ROOT = Path("/home/team-009/project")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RESULTS_DIR = PROJECT_ROOT / "data" / "results"
 
 DEFAULT_MODEL_ID = "cagliostrolab/animagine-xl-4.0"

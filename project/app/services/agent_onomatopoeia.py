@@ -1,3 +1,6 @@
+
+1. 先頭のパス設定を相対化
+今のコード
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -24,10 +27,37 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 
+def download_lora_from_hf(repo_id: str) -> str:
+    from huggingface_hub import snapshot_download
+    project_root = Path(__file__).resolve().parents[2]
+    HF_CACHE_DIR = project_root / "models" / "hf"
+    HF_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    """
+    HuggingFaceからLoRAをダウンロードしてローカルに保存
+    """
+    local_dir = HF_CACHE_DIR / repo_id
+
+    if local_dir.exists():
+        log(f"LoRA already cached: {local_dir}")
+        return str(local_dir)
+
+    log(f"Downloading LoRA from HF: {repo_id}")
+
+    path = snapshot_download(
+        repo_id=repo_id,
+        repo_type="model",
+        local_dir=str(local_dir),
+        local_dir_use_symlinks=False,
+    )
+
+    log(f"Downloaded LoRA to: {path}")
+    return path
+
+
 # =========================================================
 # パス・定数設定
 # =========================================================
-PROJECT_ROOT = Path("/home/team-009/project")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RESULTS_DIR = PROJECT_ROOT / "data" / "results"
 
 DEFAULT_LLM_MODEL = "tokyotech-llm/Llama-3-Swallow-8B-Instruct-v0.1"
@@ -46,8 +76,8 @@ OUTPUT_JSON_NAME = "08_onomatopoeia.json"
 DEFAULT_LORA_ADAPTER_DIR = str(
     PROJECT_ROOT / "train" / "onomato-30000" / "outputs" / "onoma-lora-swallow-v2" / "final_adapter"
 )
-ENV_LORA_ADAPTER_DIR = os.getenv("ONOMA_LORA_ADAPTER_DIR", DEFAULT_LORA_ADAPTER_DIR)
-
+DEFAULT_LORA_REPO = "yadorigi/onomatopoeia-lora"
+ENV_LORA_REPO = os.getenv("ONOMA_LORA_REPO", DEFAULT_LORA_REPO)
 # =========================================================
 # ユーティリティ
 # =========================================================
@@ -516,13 +546,12 @@ def cleanup_generated_text(full_text: str, prompt: str) -> str:
     return gen[:20].strip() or "……"
 
 
-def load_llm_and_tokenizer(model_name: str, adapter_dir: str):
+def load_llm_and_tokenizer(model_name: str, adapter_dir: str = None):
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from peft import PeftModel
 
     log(f"Loading base model: {model_name}")
-    log(f"Loading LoRA adapter: {adapter_dir}")
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True, trust_remote_code=True)
     if tokenizer.pad_token is None:
@@ -537,10 +566,11 @@ def load_llm_and_tokenizer(model_name: str, adapter_dir: str):
         device_map="auto",
     )
 
-    if adapter_dir and Path(adapter_dir).exists():
-        model = PeftModel.from_pretrained(model, adapter_dir)
-    else:
-        log(f"LoRA adapter not found. Fallback to base model only: {adapter_dir}")
+    # ★ここを変更
+    repo_id = ENV_LORA_REPO
+    adapter_path = download_lora_from_hf(repo_id)
+
+    model = PeftModel.from_pretrained(model, adapter_path)
 
     model.eval()
     return model, tokenizer
@@ -662,7 +692,6 @@ def extract_onomato_data_v12(text: str) -> Optional[Dict]:
 def llm_generate_onomato_data(
     model_name: str,
     context: Dict[str, Any],
-    adapter_dir: str = ENV_LORA_ADAPTER_DIR,
 ) -> Tuple[bool, Optional[Dict], str]:
     model = None
     tokenizer = None
@@ -675,7 +704,7 @@ def llm_generate_onomato_data(
         return False, None, "torch not found"
 
     try:
-        model, tokenizer = load_llm_and_tokenizer(model_name, adapter_dir)
+        model, tokenizer = load_llm_and_tokenizer(model_name)
     except Exception as e:
         return False, None, f"model load failed: {e}"
 
@@ -792,7 +821,6 @@ def llm_self_check_onomato_choice(
     context: Dict[str, Any],
     current_primary: str,
     candidates: List[str],
-    adapter_dir: str = ENV_LORA_ADAPTER_DIR,
 ) -> Tuple[bool, Optional[str], str]:
     if not candidates:
         return False, None, "candidate_pool is empty"
@@ -808,7 +836,7 @@ def llm_self_check_onomato_choice(
         return False, None, "torch not found"
 
     try:
-        model, tokenizer = load_llm_and_tokenizer(model_name, adapter_dir)
+        model, tokenizer = load_llm_and_tokenizer(model_name)
     except Exception as e:
         return False, None, f"model load failed: {e}"
 
@@ -862,14 +890,18 @@ def llm_self_check_onomato_choice(
 # =========================================================
 # メイン処理
 # =========================================================
-def run(audio_id: str, llm_enabled: bool = ENV_LLM_ENABLED, llm_model: str = ENV_LLM_MODEL, lora_adapter_dir: str = ENV_LORA_ADAPTER_DIR) -> Dict:
+def run(
+    audio_id: str,
+    llm_enabled: bool = ENV_LLM_ENABLED,
+    llm_model: str = ENV_LLM_MODEL,
+) -> Dict:
     result_dir = RESULTS_DIR / audio_id
     source_data = {fname: safe_read_json(result_dir / fname) for fname in INPUT_FILES}
     
-    f4 = source_data.get("04_features.json", {})
-    ae = source_data.get("05_audio_events.json", {})
-    sj = source_data.get("06_space_judgement.json", {})
-    si = source_data.get("07_scene_interpretation.json", {})
+    f4 = source_data.get("04_features.json") or {}
+    ae = source_data.get("05_audio_events.json") or {}
+    sj = source_data.get("06_space_judgement.json") or {}
+    si = source_data.get("07_scene_interpretation.json") or {}
 
     context = build_cond_context(f4, ae, sj, si)
     event_labels = context["audio_events"]
@@ -882,14 +914,14 @@ def run(audio_id: str, llm_enabled: bool = ENV_LLM_ENABLED, llm_model: str = ENV
         ok, parsed, reason = llm_generate_onomato_data(
             llm_model,
             context,
-            adapter_dir=lora_adapter_dir,
+
         )
 
         if ok and parsed:
             llm_res.update({
                 "used": True,
                 "status": "success",
-                "adapter_dir": ENV_LORA_ADAPTER_DIR,
+                "adapter_repo": ENV_LORA_REPO,
                 "cond": context.get("cond", ""),
                 "mode": context.get("mode", "single_event"),
             })
@@ -905,7 +937,6 @@ def run(audio_id: str, llm_enabled: bool = ENV_LLM_ENABLED, llm_model: str = ENV
                     context,
                     current_primary=base_primary,
                     candidates=candidates,
-                    adapter_dir=lora_adapter_dir,
                 )
 
                 if ok2 and reviewed_primary:
@@ -926,7 +957,7 @@ def run(audio_id: str, llm_enabled: bool = ENV_LLM_ENABLED, llm_model: str = ENV
             llm_res.update({
                 "status": "failed",
                 "reason": reason,
-                "adapter_dir": ENV_LORA_ADAPTER_DIR,
+                "adapter_repo": ENV_LORA_REPO,
                 "cond": context.get("cond", ""),
                 "mode": context.get("mode", "single_event"),
             })
